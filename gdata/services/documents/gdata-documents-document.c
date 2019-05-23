@@ -218,6 +218,7 @@ static gboolean post_parse_json (GDataParsable *parsable, gpointer user_data, GE
 
 struct _GDataDocumentsDocumentPrivate {
 	GHashTable *export_links; /* owned string → owned string */
+    GSList *parents;
 };
 
 G_DEFINE_TYPE (GDataDocumentsDocument, gdata_documents_document, GDATA_TYPE_DOCUMENTS_ENTRY)
@@ -242,6 +243,7 @@ gdata_documents_document_init (GDataDocumentsDocument *self)
 {
 	self->priv = G_TYPE_INSTANCE_GET_PRIVATE (self, GDATA_TYPE_DOCUMENTS_DOCUMENT, GDataDocumentsDocumentPrivate);
 	self->priv->export_links = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+    self->priv->parents = NULL;
 }
 
 static void
@@ -310,7 +312,28 @@ parse_json (GDataParsable *parsable, JsonReader *reader, gpointer user_data, GEr
 		}
 
 		return TRUE;
-	}
+	} else if (g_strcmp0 (json_reader_get_member_name (reader), "parents") == 0) {
+        guint i, members;
+
+        if (json_reader_is_object (reader) == FALSE) {
+            g_set_error (error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_PARSING_STRING,
+                         _("Error parsing JSON: %s"),
+                         "JSON node 'parents' is not an array.");
+            return FALSE;
+        }
+
+        for (i = 0, members = (guint) json_reader_count_members (reader); i < members; i++) {
+            const gchar *id;
+
+            json_reader_read_element (reader);
+            g_assert (gdata_parser_string_from_json_member (reader, "id", P_REQUIRED | P_NON_EMPTY, &id, &success, NULL));
+            if (success) {
+                g_slist_append (priv->parents, g_strdup (id));
+            }
+            json_reader_end_element (reader);
+            g_free (id);
+        }
+    }
 
 	return GDATA_PARSABLE_CLASS (gdata_documents_document_parent_class)->parse_json (parsable, reader, user_data, error);
 }
@@ -553,4 +576,14 @@ gdata_documents_document_get_thumbnail_uri (GDataDocumentsDocument *self)
 	}
 
 	return gdata_link_get_uri (thumbnail_link);
+}
+
+GSList *
+gdata_documents_document_get_parents (GDataDocumentsDocument *self)
+{
+	g_return_val_if_fail (GDATA_IS_DOCUMENTS_DOCUMENT (self), NULL);
+
+	GDataDocumentsDocumentPrivate *priv = GDATA_DOCUMENTS_DOCUMENT (parsable)->priv;
+
+    return priv->parents;
 }

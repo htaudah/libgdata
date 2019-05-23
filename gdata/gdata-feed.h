@@ -58,6 +58,7 @@ typedef struct {
 typedef struct {
 	/*< private >*/
 	GDataParsableClass parent;
+    const gchar *(*get_next_page_token) (GDataFeed *self);
 
 	/*< private >*/
 	/* Padding for future expansion */
@@ -66,7 +67,6 @@ typedef struct {
 	void (*_g_reserved2) (void);
 	void (*_g_reserved3) (void);
 	void (*_g_reserved4) (void);
-	void (*_g_reserved5) (void);
 } GDataFeedClass;
 
 GType gdata_feed_get_type (void) G_GNUC_CONST;

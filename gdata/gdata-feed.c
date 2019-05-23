@@ -121,6 +121,8 @@ gdata_feed_class_init (GDataFeedClass *klass)
 	parsable_class->parse_json = parse_json;
 	parsable_class->post_parse_json = post_parse_json;
 
+    klass->get_next_page_token = gdata_feed_real_get_next_page_token;
+
 	/**
 	 * GDataFeed:title:
 	 *
@@ -1092,17 +1094,30 @@ gdata_feed_get_total_results (GDataFeed *self)
  * This is #GDataFeed:next-page-token. The page token might not be set if there
  * is no next page, or if this service does not use token based paging (for
  * example, if it uses page number or offset based paging instead). Most more
- * recent services use token based paging.
+ * recent services use token based paging. This was changed in <TODO: version>
+ * to a virtual function to allow for an overloaded definition of a
+ * next-page-token that includes the new-start-page-token used by the
+ * changes api (see <TODO: link>).
  *
  * Return value: (nullable): the next page token
  *
  * Since: 0.17.7
  */
-const gchar *
+static const gchar *
 gdata_feed_get_next_page_token (GDataFeed *self)
 {
+    GDataFeedClass *klass;
 	g_return_val_if_fail (GDATA_IS_FEED (self), NULL);
-	return self->priv->next_page_token;
+
+    klass = GDATA_FEED_CLASS (self);
+    g_return_val_if_fail (klass->get_next_page_token != NULL, NULL);
+    klass->get_next_page_token (self);
+}
+
+static const gchar *
+gdata_feed_real_get_next_page_token (GDataFeed *self)
+{
+    return self->priv->next_page_token;
 }
 
 void
