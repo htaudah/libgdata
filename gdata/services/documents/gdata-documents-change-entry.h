@@ -8,6 +8,7 @@ G_DECLARE_FINAL_TYPE (GDataDocumentsChangeEntry, gdata_documents_change_entry, G
                       DOCUMENTS_CHANGE_ENTRY, GDATA_TYPE_ENTRY)
 
 GDataDocumentsChangeEntry *gdata_documents_change_entry_new (void);
+GDataDocumentsDocument *gdata_documents_change_entry_get_file (GDataDocumentsChangeEntry *entry);
 
 G_END_DECLS
 

@@ -87,3 +87,11 @@ parse_json (GDataParsable *parsable, JsonReader *reader, gpointer user_data, GEr
 
     return GDATA_PARSABLE_CLASS (gdata_documents_change_entry_parent_class)->parse_json (parsable, reader, user_data, error);
 }
+
+GDataDocumentsDocument *
+gdata_documents_change_entry_get_file (GDataDocumentsChangeEntry *entry)
+{
+	g_return_val_if_fail (GDATA_IS_DOCUMENTS_CHANGE_ENTRY (self), NULL);
+
+    return entry->file;
+}
