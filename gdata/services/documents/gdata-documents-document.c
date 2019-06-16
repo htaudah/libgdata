@@ -218,7 +218,6 @@ static gboolean post_parse_json (GDataParsable *parsable, gpointer user_data, GE
 
 struct _GDataDocumentsDocumentPrivate {
 	GHashTable *export_links; /* owned string → owned string */
-    GSList *parents;
 };
 
 G_DEFINE_TYPE (GDataDocumentsDocument, gdata_documents_document, GDATA_TYPE_DOCUMENTS_ENTRY)
@@ -243,7 +242,6 @@ gdata_documents_document_init (GDataDocumentsDocument *self)
 {
 	self->priv = G_TYPE_INSTANCE_GET_PRIVATE (self, GDATA_TYPE_DOCUMENTS_DOCUMENT, GDataDocumentsDocumentPrivate);
 	self->priv->export_links = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
-    self->priv->parents = NULL;
 }
 
 static void
