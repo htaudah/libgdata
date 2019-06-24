@@ -1,7 +1,11 @@
+#include <config.h>
+#include <glib/gi18n-lib.h>
+
 #include "gdata-documents-change-feed.h"
+#include "gdata-documents-change-entry.h"
+#include "gdata-private.h"
 
 static gboolean parse_json (GDataParsable *parsable, JsonReader *reader, gpointer user_data, GError **error);
-static gboolean post_parse_json (GDataParsable *parsable, gpointer user_data, GError **error);
 
 struct _GDataDocumentsChangeFeed
 {
@@ -10,15 +14,40 @@ struct _GDataDocumentsChangeFeed
     gchar *new_start_page_token;
 };
 
-G_DEFINE_TYPE (GDataDocumentsChangeFeed, gdata_documents_change_feed, GDATA_TYPE_FEED)
+G_DEFINE_TYPE (GDataDocumentsChangeFeed, gdata_documents_change_feed, GDATA_TYPE_FEED);
+
+static void
+gdata_documents_change_feed_init (GDataDocumentsChangeFeed *self)
+{
+}
 
 static void
 gdata_documents_change_feed_class_init (GDataDocumentsChangeFeedClass *klass)
 {
+    GDataFeedClass *feed_class = GDATA_FEED_CLASS (klass);
 	GDataParsableClass *parsable_class = GDATA_PARSABLE_CLASS (klass);
 	parsable_class->parse_json = parse_json;
 
-    klass->get_next_page_token = gdata_documents_change_feed_real_get_next_page_token;
+    feed_class->get_next_page_token = gdata_documents_change_feed_real_get_next_page_token;
+}
+
+/**
+ * To allow for gdata-service and gdata-query to function as they do for other queries, the definition
+ * of next_page_token has been overloaded to also mean a new_start_page_token. The response from
+ * gdata-documents-change-service will contain one or the other (not both), and semantically they
+ * represent the same concept.
+ *
+ * For more information on the changes api new_start_page_token, see the <ulink type="http"
+ * url="https://developers.google.com/drive/api/v2/reference/changes/list">online documentation</ulink>.
+ */
+const gchar *
+gdata_documents_change_feed_real_get_next_page_token (GDataFeed *self)
+{
+    GDataDocumentsChangeFeed *change_feed;
+	g_return_val_if_fail (GDATA_IS_DOCUMENTS_CHANGE_FEED (self), NULL);
+    // Return whichever token is present in the feed
+    change_feed = GDATA_DOCUMENTS_CHANGE_FEED (self);
+    return (change_feed->new_start_page_token)? change_feed->new_start_page_token : gdata_feed_get_next_page_token (self);
 }
 
 static void
@@ -98,7 +127,7 @@ parse_json (GDataParsable *parsable, JsonReader *reader, gpointer user_data, GEr
 			}
 
 			if (g_strcmp0 (change_type, "file") == 0) {
-				entry_type = GDATA_TYPE_DOCUMENTS_DOCUMENT;
+				entry_type = GDATA_TYPE_DOCUMENTS_CHANGE_ENTRY;
 			} else {
 				g_warning ("%s changes are not handled yet", change_type);
 			}
@@ -123,5 +152,5 @@ parse_json (GDataParsable *parsable, JsonReader *reader, gpointer user_data, GEr
         return TRUE;
     }
 
-	return GDATA_PARSABLE_CLASS (gdata_documents_feed_parent_class)->parse_json (parsable, reader, user_data, error);
+	return GDATA_PARSABLE_CLASS (gdata_documents_change_feed_parent_class)->parse_json (parsable, reader, user_data, error);
 }

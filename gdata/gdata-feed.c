@@ -57,6 +57,7 @@ static void get_namespaces (GDataParsable *parsable, GHashTable *namespaces);
 
 static void _gdata_feed_add_category (GDataFeed *self, GDataCategory *category);
 static void _gdata_feed_add_author (GDataFeed *self, GDataAuthor *author);
+static const gchar *gdata_feed_real_get_next_page_token (GDataFeed *self);
 
 static gboolean parse_json (GDataParsable *parsable, JsonReader *reader, gpointer user_data, GError **error);
 static gboolean post_parse_json (GDataParsable *parsable, gpointer user_data, GError **error);
@@ -1103,7 +1104,7 @@ gdata_feed_get_total_results (GDataFeed *self)
  *
  * Since: 0.17.7
  */
-static const gchar *
+const gchar *
 gdata_feed_get_next_page_token (GDataFeed *self)
 {
     GDataFeedClass *klass;
@@ -1111,7 +1112,7 @@ gdata_feed_get_next_page_token (GDataFeed *self)
 
     klass = GDATA_FEED_CLASS (self);
     g_return_val_if_fail (klass->get_next_page_token != NULL, NULL);
-    klass->get_next_page_token (self);
+    return klass->get_next_page_token (self);
 }
 
 static const gchar *

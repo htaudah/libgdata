@@ -29,7 +29,9 @@
  */
 #include "gdata-documents-change-entry.h"
 
-static void gdata_documents_change_entry_constructed (GObject *object);
+#include "gdata-private.h"
+
+static gboolean parse_json (GDataParsable *parsable, JsonReader *reader, gpointer user_data, GError **error);
 
 struct _GDataDocumentsChangeEntry
 {
@@ -40,10 +42,19 @@ struct _GDataDocumentsChangeEntry
     GDataDocumentsDocument *file;
 };
 
-G_DEFINE_TYPE (GDataDocumentsChangeEntry, gdata_documents_change_entry, GDATA_TYPE_ENTRY)
+G_DEFINE_TYPE (GDataDocumentsChangeEntry, gdata_documents_change_entry, GDATA_TYPE_ENTRY);
 
-void gdata_documents_change_entry_new (const gchar *id)
+static void
+gdata_documents_change_entry_init (GDataDocumentsChangeEntry *self)
 {
+}
+
+static void
+gdata_documents_change_entry_class_init (GDataDocumentsChangeEntryClass *klass)
+{
+	GDataParsableClass *parsable_class = GDATA_PARSABLE_CLASS (klass);
+
+	parsable_class->parse_json = parse_json;
 }
 
 static gboolean
@@ -72,7 +83,7 @@ parse_json (GDataParsable *parsable, JsonReader *reader, gpointer user_data, GEr
         return success;
     } else if (g_strcmp0 (json_reader_get_member_name (reader), "file") == 0) {
         GType element_type = GDATA_TYPE_DOCUMENTS_DOCUMENT;
-        GDataDocumentsDocument file;
+        GDataDocumentsDocument *file;
 
         json_reader_read_member (reader, "file");
         file = GDATA_DOCUMENTS_DOCUMENT (_gdata_parsable_new_from_json_node (element_type, reader, NULL, error));
@@ -89,9 +100,9 @@ parse_json (GDataParsable *parsable, JsonReader *reader, gpointer user_data, GEr
 }
 
 GDataDocumentsDocument *
-gdata_documents_change_entry_get_file (GDataDocumentsChangeEntry *entry)
+gdata_documents_change_entry_get_file (GDataDocumentsChangeEntry *self)
 {
 	g_return_val_if_fail (GDATA_IS_DOCUMENTS_CHANGE_ENTRY (self), NULL);
 
-    return entry->file;
+    return self->file;
 }

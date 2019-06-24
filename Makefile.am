@@ -290,6 +290,9 @@ gdata_documents_headers = \
 	gdata/services/documents/gdata-documents-metadata.h	\
 	gdata/services/documents/gdata-documents-feed.h		\
 	gdata/services/documents/gdata-documents-entry.h	\
+	gdata/services/documents/gdata-documents-change-entry.h	\
+	gdata/services/documents/gdata-documents-change-feed.h	\
+	gdata/services/documents/gdata-documents-change-service.h	\
 	gdata/services/documents/gdata-documents-query.h	\
 	gdata/services/documents/gdata-documents-document.h	\
 	gdata/services/documents/gdata-documents-text.h		\
@@ -433,6 +436,9 @@ gdata_sources = \
 	gdata/services/documents/gdata-documents-metadata.c	\
 	gdata/services/documents/gdata-documents-feed.c		\
 	gdata/services/documents/gdata-documents-entry.c	\
+	gdata/services/documents/gdata-documents-change-entry.c	\
+	gdata/services/documents/gdata-documents-change-feed.c	\
+	gdata/services/documents/gdata-documents-change-service.c	\
 	gdata/services/documents/gdata-documents-document.c	\
 	gdata/services/documents/gdata-documents-text.c		\
 	gdata/services/documents/gdata-documents-presentation.c	\
@@ -635,7 +641,8 @@ endif
 endif
 
 # Code coverage
-@CODE_COVERAGE_RULES@
+# Commented due to API-breaking change
+#@CODE_COVERAGE_RULES@
 CODE_COVERAGE_DIRECTORY = $(top_builddir)/gdata
 CODE_COVERAGE_LCOV_OPTIONS = --base-directory $(abs_top_srcdir)
 

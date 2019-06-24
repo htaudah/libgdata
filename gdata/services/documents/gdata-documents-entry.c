@@ -529,12 +529,13 @@ get_kind_email_and_name (JsonReader *reader, gchar **out_kind, gchar **out_email
 }
 
 static void
-get_kind_and_parent_link (JsonReader *reader, gchar **out_kind, gchar **out_parent_link, GError **error)
+get_kind_id_and_parent_link (JsonReader *reader, gchar **out_kind, gchar **out_parent_id, gchar **out_parent_link, GError **error)
 {
 	GError *child_error = NULL;
 	gboolean success;
 	gchar *kind = NULL;
 	gchar *parent_link = NULL;
+    gchar *parent_id = NULL;
 	guint i, members;
 
 	for (i = 0, members = (guint) json_reader_count_members (reader); i < members; i++) {
@@ -562,6 +563,17 @@ get_kind_and_parent_link (JsonReader *reader, gchar **out_kind, gchar **out_pare
 			}
 		}
 
+		if (gdata_parser_string_from_json_member (reader, "id", P_REQUIRED | P_NON_EMPTY, &parent_id, &success, &child_error) == TRUE) {
+			if (!success && child_error != NULL) {
+				g_propagate_prefixed_error (error, child_error,
+				                            /* Translators: the parameter is an error message */
+				                            _("Error parsing JSON: %s"),
+				                            "Failed to find ‘id’.");
+				json_reader_end_element (reader);
+				goto out;
+			}
+		}
+
 		json_reader_end_element (reader);
 	}
 
@@ -575,9 +587,15 @@ get_kind_and_parent_link (JsonReader *reader, gchar **out_kind, gchar **out_pare
 		parent_link = NULL;
 	}
 
+    if (out_parent_id != NULL) {
+        *out_parent_id = parent_id;
+        parent_id = NULL;
+    }
+
  out:
 	g_free (kind);
 	g_free (parent_link);
+    g_free (parent_id);
 }
 
 static gboolean
@@ -768,6 +786,7 @@ parse_json (GDataParsable *parsable, JsonReader *reader, gpointer user_data, GEr
 			GDataLink *_link = NULL;
 			const gchar *relation_type = NULL;
 			gchar *uri = NULL;
+            gchar *id = NULL;
 
 			json_reader_read_element (reader, i);
 
@@ -780,7 +799,7 @@ parse_json (GDataParsable *parsable, JsonReader *reader, gpointer user_data, GEr
 				goto continue_parents;
 			}
 
-			get_kind_and_parent_link (reader, &kind, &uri, &child_error);
+			get_kind_id_and_parent_link (reader, &kind, &id, &uri, &child_error);
 			if (child_error != NULL) {
 				g_propagate_error (error, child_error);
 				success = FALSE;
@@ -797,12 +816,15 @@ parse_json (GDataParsable *parsable, JsonReader *reader, gpointer user_data, GEr
 				goto continue_parents;
 
 			_link = gdata_link_new (uri, relation_type);
+            /* The link title will serve as the parent id. */
+            gdata_link_set_title (_link, id);
 			gdata_entry_add_link (GDATA_ENTRY (parsable), _link);
 
 		continue_parents:
 			g_clear_object (&_link);
 			g_free (kind);
 			g_free (uri);
+            g_free (id);
 			json_reader_end_element (reader);
 		}
 

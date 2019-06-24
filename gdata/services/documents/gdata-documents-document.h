@@ -78,6 +78,7 @@ GDataDownloadStream *gdata_documents_document_download (GDataDocumentsDocument *
 gchar *gdata_documents_document_get_download_uri (GDataDocumentsDocument *self, const gchar *export_format) G_GNUC_WARN_UNUSED_RESULT G_GNUC_MALLOC;
 
 const gchar *gdata_documents_document_get_thumbnail_uri (GDataDocumentsDocument *self) G_GNUC_PURE;
+GList *gdata_documents_document_get_parents (GDataDocumentsDocument *self);
 
 G_END_DECLS
 

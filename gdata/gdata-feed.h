@@ -53,7 +53,7 @@ typedef struct {
 /**
  * GDataFeedClass:
  *
- * All the fields in the #GDataFeedClass structure are private and should never be accessed directly.
+ * All the fields in the #GDataFeedClass structure are private and should never be accessed directly (TODO: valid?).
  */
 typedef struct {
 	/*< private >*/

@@ -310,29 +310,7 @@ parse_json (GDataParsable *parsable, JsonReader *reader, gpointer user_data, GEr
 		}
 
 		return TRUE;
-	} else if (g_strcmp0 (json_reader_get_member_name (reader), "parents") == 0) {
-        guint i, members;
-
-        if (json_reader_is_object (reader) == FALSE) {
-            g_set_error (error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_PARSING_STRING,
-                         _("Error parsing JSON: %s"),
-                         "JSON node 'parents' is not an array.");
-            return FALSE;
-        }
-
-        for (i = 0, members = (guint) json_reader_count_members (reader); i < members; i++) {
-            const gchar *id;
-
-            json_reader_read_element (reader);
-            g_assert (gdata_parser_string_from_json_member (reader, "id", P_REQUIRED | P_NON_EMPTY, &id, &success, NULL));
-            if (success) {
-                g_slist_append (priv->parents, g_strdup (id));
-            }
-            json_reader_end_element (reader);
-            g_free (id);
-        }
-    }
-
+	}
 	return GDATA_PARSABLE_CLASS (gdata_documents_document_parent_class)->parse_json (parsable, reader, user_data, error);
 }
 
@@ -576,12 +554,23 @@ gdata_documents_document_get_thumbnail_uri (GDataDocumentsDocument *self)
 	return gdata_link_get_uri (thumbnail_link);
 }
 
-GSList *
+GList *
 gdata_documents_document_get_parents (GDataDocumentsDocument *self)
 {
+    GList *parent_links;
+    GList *parents = NULL;
+
 	g_return_val_if_fail (GDATA_IS_DOCUMENTS_DOCUMENT (self), NULL);
+    parent_links = gdata_entry_look_up_links (GDATA_ENTRY (self), GDATA_LINK_PARENT);
 
-	GDataDocumentsDocumentPrivate *priv = GDATA_DOCUMENTS_DOCUMENT (parsable)->priv;
+    for (GList *element = parent_links; element != NULL; element = element->next)
+    {
+        GDataLink *link = element->data;
+        /* The link title was overloaded to mean file id for parent links */
+        gchar *parent_id = g_strdup (gdata_link_get_title (link));
+        parents = g_list_prepend (parents, parent_id);
+    }
+    g_list_free (parent_links);
 
-    return priv->parents;
+    return parents;
 }
